@@ -50,7 +50,7 @@ There is a specific folder structure and format that needs to be followed within
 ```bash
 node server.js
 ```
-Go to http://localhost:`:port` in your browser.
+Go to `http://localhost:<PORT>` in your browser.
 
 ## License
 
