@@ -1,0 +1,102 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Library</title>
+    <style>
+
+      html {
+        font-size: 16px;
+      }
+
+      body {
+        background-color: #222222;
+      }
+
+      h1 {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        text-align: center;
+        font-size: 5rem;
+        color: red;
+        text-shadow: #000 1px 0 10px;
+      }
+
+      .cover {
+        width: 200px;
+        height: 300px;
+      }
+
+      .cover:hover {
+        filter: grayscale(1);
+      }
+
+      #covers {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 10px;
+      }
+
+    </style>
+    <script>
+      const isVideoFile = (fileName) => {
+        const x = fileName.split(".").pop();
+        const supportedVideoTypes = ["mkv", "mp4", "m4v", "avi"]; // not working: avi, ..
+        console.log("x: ", x);
+        return supportedVideoTypes.includes(x);
+      };
+
+      const isSubtitlesFile = (fileName) => {
+        return fileName.split(".").pop() === "vtt";
+      }
+
+      window.onload = function () {
+        fetch("dir")
+          .then((response) => response.json())
+          .then((folderData) => {
+            folderData.forEach((folder) => {
+              const path = folder.file;
+              fetch(`dir?path=${path}`)
+                .then((response) => response.json())
+                .then((files) => {
+                  const coverLink = document.createElement("a");
+                  document.getElementById("covers").append(coverLink);
+                  const cover = document.createElement("img");
+                  cover.classList.add("cover");
+                  coverLink.append(cover);
+
+                  let subtitlesFile = "";
+                  let coverLinkUrl = "";
+
+                  files.forEach((fileInfo) => {
+                    if (fileInfo.file === "cover.jpg") {
+                      // Get cover image
+                      fetch(`image?path=${fileInfo.relPath}`)
+                      .then(response => response.blob())
+                      .then(blob => {
+                        cover.src = URL.createObjectURL(blob);
+                        // Get the video name from the folder name
+                        cover.title = path;
+                      })
+                      .catch(error => console.error('Error fetching the image:', error));
+                    } else if (isSubtitlesFile(fileInfo.file)) {
+                      subtitlesFile = fileInfo.file;
+                    } else if (isVideoFile(fileInfo.file)) {
+                      coverLinkUrl = `video.html?videourl=${path}/${fileInfo.file}`
+                    }
+                  });
+
+                  if (subtitlesFile) {
+                    coverLinkUrl += `&subtitle=${subtitlesFile}`
+                  }
+                  coverLink.href = coverLinkUrl;
+                });
+            });
+          });
+      };
+    </script>
+  </head>
+  <body>
+    <h1>Video Library</h1>
+    <div id="covers"></div>
+  </body>
+</html>
